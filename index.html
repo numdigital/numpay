@@ -10,18 +10,22 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
           rel="stylesheet">
- 
+
     <style>
         :root {
-            --bg-color: #1a1a1a; /* Темная тема по умолчанию */
-            --text-color: #f5f5f5;
-            --header-footer-bg: #222; /* Цвет шапки и футера */
+            --bg-color: #18222d;
+            --text-color: #ffffff;
+            --header-footer-bg: #1f2d3b;
+            --button-bg: #2ea6ff;
+            --button-text: #ffffff;
             --logo-filter: invert(1);
         }
         .light-theme {
-            --bg-color: #f5f5f5;
-            --text-color: #333;
-            --header-footer-bg: #e0e0e0; /* Цвет шапки и футера для светлой темы */
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --header-footer-bg: #f0f0f0;
+            --button-bg: #2ea6ff;
+            --button-text: #ffffff;
             --logo-filter: none;
         }
         body {
@@ -76,7 +80,7 @@
             height: 280px;
         }
         #loader {
-            display: none;
+            display: block;
             width: 50px;
             height: 50px;
             border: 5px solid #f3f3f3;
@@ -84,15 +88,19 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+        #loader-container {
+            display: none;
+        }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
         #payment-status {
-            display: none;
+            display: block;
             font-size: 24px;
             color: green;
             margin-top: 20px;
+            text-align: center;
         }
         footer {
             position: fixed;
@@ -100,16 +108,48 @@
             left: 0;
             width: 100%;
             text-align: center;
-            padding: 10px 0;
+            padding: 20px 0;
             font-size: 14px;
             color: var(--text-color);
             background-color: var(--header-footer-bg);
             box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
         }
-        #pay-text {
-            margin-top: 10px;
+        #pay-button, #back-button {
+            margin-top: 20px;
+            padding: 10px 20px;
             font-size: 18px;
-            color: var(--text-color);
+            color: var(--button-text);
+            background-color: var(--button-bg);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #pay-button:hover, #back-button:hover {
+            background-color: #1e8ad6;
+        }
+
+        #payment-block {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #loader-container {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #status-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
         }
     </style>
 </head>
@@ -118,16 +158,24 @@
 <header>
     <span style="margin-left: 20px">Numberg Pay</span>
     <button id="theme-toggle">
-        <!-- Иконка для переключения темы (светлая/темная) -->
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 20 20"><path fill="currentColor" fill-rule="evenodd" d="M10 2a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1m4 8a4 4 0 1 1-8 0a4 4 0 0 1 8 0m-.464 4.95l.707.707a1 1 0 0 0 1.414-1.414l-.707-.707a1 1 0 0 0-1.414 1.414m2.12-10.607a1 1 0 0 1 0 1.414l-.706.707a1 1 0 1 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 0M17 11a1 1 0 1 0 0-2h-1a1 1 0 1 0 0 2zm-7 4a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1M5.05 6.464A1 1 0 1 0 6.465 5.05l-.708-.707a1 1 0 0 0-1.414 1.414zm1.414 8.486l-.707.707a1 1 0 0 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 1.414M4 11a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2z" clip-rule="evenodd"/></svg>
     </button>
 </header>
 <div>
-    <img id="logo" src="numbercoin.png" alt="Numberg Coin Logo">
-    <div id="pay-text">Оплатить с помощью Numberg Coin</div>
+    <div id="payment-block" class="center">
+        <img id="logo" src="numbercoin.png" alt="Numberg Coin Logo">
+        <button id="pay-button">Оплатить с помощью NumbergCoin</button>
+    </div>
 
-    <div id="loader"></div>
-    <div id="payment-status">Оплачено ✅</div>
+    <div id="loader-container">
+        <div id="loader"></div>
+        <p>Ваш платеж обрабатывается...</p>
+    </div>
+
+    <div id="status-container">
+        <div id="payment-status">Оплата прошла успешно ✅</div>
+        <button id="back-button">Назад</button>
+    </div>
 </div>
 
 <footer>
@@ -135,13 +183,14 @@
 </footer>
 
 <script>
-    const logo = document.getElementById('logo');
-    const loader = document.getElementById('loader');
-    const paymentStatus = document.getElementById('payment-status');
+    const paymentBlock = document.getElementById('payment-block');
+    const loaderContainer = document.getElementById('loader-container');
+    const paymentStatus = document.getElementById('status-container');
     const themeToggle = document.getElementById('theme-toggle');
     const body = document.body;
     const currentYear = document.getElementById('current-year');
-    const payText = document.getElementById('pay-text');
+    const payButton = document.getElementById('pay-button');
+    const backButton = document.getElementById('back-button');
 
     // Установка текущего года в футере
     currentYear.textContent = new Date().getFullYear();
@@ -152,17 +201,26 @@
         body.classList.toggle('dark-theme');
     });
 
-    // Обработчик для логотипа
-    logo.addEventListener('click', () => {
-        logo.style.display = 'none';
-        loader.style.display = 'block';
-        payText.style.display = 'none';
+    // Функция для сброса к начальному состоянию
+    const resetToInitialState = () => {
+        paymentStatus.style.display = 'none';
+        loaderContainer.style.display = 'none';
+        paymentBlock.style.display = 'flex';
+    };
+
+    // Обработчик для кнопки оплаты
+    payButton.addEventListener('click', () => {
+        paymentBlock.style.display = 'none';
+        loaderContainer.style.display = 'flex';
 
         setTimeout(() => {
-            loader.style.display = 'none';
-            paymentStatus.style.display = 'block';
+            loaderContainer.style.display = 'none';
+            paymentStatus.style.display = 'flex';
         }, 3000);
     });
+
+    // Обработчик для кнопки "Назад"
+    backButton.addEventListener('click', resetToInitialState);
 </script>
 </body>
 </html>
